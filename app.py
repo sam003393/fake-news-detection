@@ -348,5 +348,4 @@ def live_news():
 # ==============================
 if __name__ == "__main__":
     print("🚀 Fake News Detection App with Fact-check Running")
-    port = int(os.environ.get("PORT", 8080))
-app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=5001, debug=True)
