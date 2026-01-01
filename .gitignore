@@ -1,0 +1,23 @@
+# Virtual environment
+venv/
+
+# Python cache
+_pycache_/
+*.pyc
+
+# Model files (large)
+*.pth
+*.pt
+*.h5
+*.pkl
+
+# Data folders
+data/
+dataset/
+uploads/
+
+# Environment variables
+.env
+
+# VS Code
+.vscode/

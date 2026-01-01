@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard | Fake News Detection</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+    background:#f4f6f9;
+    transition:0.4s;
+}
+body.dark{
+    background:#121212;
+    color:#f1f1f1;
+}
+.card{
+    border-radius:15px;
+}
+.dark .card{
+    background:#1f1f2e;
+    color:white;
+}
+.navbar-brand{
+    font-weight:700;
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
+<div class="container-fluid">
+    <a class="navbar-brand" href="#">📰 Fake News AI</a>
+    <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#nav">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link" href="/detect">Detect</a></li>
+            <li class="nav-item"><a class="nav-link" href="/history">History</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin">Admin</a></li>
+            <li class="nav-item">
+                <button class="btn btn-light ms-2" id="themeToggle">🌙</button>
+            </li>
+            <li class="nav-item">
+                <a class="btn btn-danger ms-2" href="/logout">Logout</a>
+            </li>
+        </ul>
+    </div>
+</div>
+</nav>
+
+<!-- MAIN -->
+<div class="container mt-4">
+
+<!-- COUNTRY SELECT -->
+<div class="row mb-4">
+<div class="col-md-4">
+    <label class="fw-bold">🌍 Select Country</label>
+    <select class="form-select" id="countrySelect">
+        <option value="us">United States</option>
+        <option value="pk">Pakistan</option>
+        <option value="in">India</option>
+    </select>
+</div>
+</div>
+
+<!-- STATS CARDS -->
+<div class="row text-center">
+<div class="col-md-4">
+    <div class="card shadow p-3">
+        <h5>Total Fake News</h5>
+        <h2 class="text-danger" id="fakeCount">0</h2>
+    </div>
+</div>
+
+<div class="col-md-4">
+    <div class="card shadow p-3">
+        <h5>Total Real News</h5>
+        <h2 class="text-success" id="realCount">0</h2>
+    </div>
+</div>
+
+<div class="col-md-4">
+    <div class="card shadow p-3">
+        <h5>Overall Accuracy</h5>
+        <h2 id="accuracy">--%</h2>
+    </div>
+</div>
+</div>
+
+<!-- CHARTS -->
+<div class="row mt-4">
+<div class="col-md-6">
+    <div class="card shadow p-3">
+        <h5>Fake vs Real (Selected Country)</h5>
+        <canvas id="countryChart"></canvas>
+    </div>
+</div>
+
+<div class="col-md-6">
+    <div class="card shadow p-3">
+        <h5>Fake vs Real (All Countries)</h5>
+        <canvas id="globalChart"></canvas>
+    </div>
+</div>
+</div>
+
+</div>
+
+<!-- JS -->
+<script>
+const themeBtn = document.getElementById("themeToggle");
+if(window.matchMedia('(prefers-color-scheme: dark)').matches){
+    document.body.classList.add("dark");
+}
+themeBtn.onclick = ()=>{
+    document.body.classList.toggle("dark");
+};
+
+let countryChart, globalChart;
+
+// ==========================
+// LOAD COUNTRY STATS
+// ==========================
+async function loadCountryStats(country){
+    const res = await fetch("/country-stats");
+    const data = await res.json();
+
+    const fake = data[country]?.fake || 0;
+    const real = data[country]?.real || 0;
+
+    document.getElementById("fakeCount").textContent = fake;
+    document.getElementById("realCount").textContent = real;
+
+    const acc = fake+real > 0 ? Math.round((real/(fake+real))*100) : 0;
+    document.getElementById("accuracy").textContent = acc + "%";
+
+    if(countryChart) countryChart.destroy();
+
+    countryChart = new Chart(document.getElementById("countryChart"),{
+        type:"doughnut",
+        data:{
+            labels:["Fake","Real"],
+            datasets:[{
+                data:[fake,real],
+                backgroundColor:["#dc3545","#198754"]
+            }]
+        }
+    });
+}
+
+// ==========================
+// GLOBAL CHART
+// ==========================
+async function loadGlobalChart(){
+    const res = await fetch("/country-stats");
+    const data = await res.json();
+
+    const labels=[], fake=[], real=[];
+    for(const c in data){
+        labels.push(c.toUpperCase());
+        fake.push(data[c].fake);
+        real.push(data[c].real);
+    }
+
+    if(globalChart) globalChart.destroy();
+
+    globalChart = new Chart(document.getElementById("globalChart"),{
+        type:"bar",
+        data:{
+            labels,
+            datasets:[
+                {label:"Fake", data:fake, backgroundColor:"#dc3545"},
+                {label:"Real", data:real, backgroundColor:"#198754"}
+            ]
+        }
+    });
+}
+
+// ==========================
+// EVENTS
+// ==========================
+document.getElementById("countrySelect").addEventListener("change",e=>{
+    loadCountryStats(e.target.value);
+});
+
+// INITIAL LOAD
+loadCountryStats("us");
+loadGlobalChart();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
