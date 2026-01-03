@@ -1,14 +1,13 @@
-flask==2.3.3
-gunicorn==21.2.0
+flask==2.2.5
+werkzeug==2.2.3
+torch==2.2.1
+torchvision==0.17.1
 
-torch==2.1.0
-torchvision==0.16.0
-
-transformers==4.36.2
-tokenizers==0.15.0
+transformers==4.33.0
+tokenizers==0.13.3
 
 spacy==3.5.3
-numpy==1.26.3
+numpy==1.26.2
 requests==2.31.0
-pillow==10.1.0
-tqdm==4.66.1
+pillow==10.0.1
+tqdm==4.67.1
